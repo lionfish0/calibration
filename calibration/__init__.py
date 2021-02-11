@@ -414,13 +414,14 @@ class CalibrationSystem():
         #likelihoodstd = np.sqrt((self.likelihoodstd**2)*np.sum(1-ref,1))
         #likelihoodstd = self.likelihoodstd/100+self.likelihoodstd*np.min(1-ref,1)
         #return tfd.Normal(0,0.001+likelihoodstd).log_prob((scaledA-scaledB)/(scaledA+scaledB))
-        #return tfd.Normal(0,self.likelihoodstd).log_prob((scaledA-scaledB)/(scaledA+scaledB))
+        #return tfd.Normal(0,self.likelihoodstd).log_prob((scaledA-scaledB)/(scaledA+scaledB#))
         #return tfd.Normal(0,self.likelihoodstd).log_prob(scaledA-scaledB)
-        return tfd.Normal(0,likelihoodstd).log_prob(scaledA-scaledB)
+        #return tfd.Normal(0,likelihoodstd).log_prob(scaledA-scaledB)
+        return tfd.Normal(0,likelihoodstd).log_prob((scaledA-scaledB)/(0.5*(scaledA+scaledB)))
         
 
     #@tf.function
-    def run(self,its=None,samples=100,threshold=0.001):
+    def run(self,its=None,samples=100,threshold=0.001,verbose=False):
         """ Run the VI optimisation.
         
         its: Number of iterations. Set its to None to automatically stop
@@ -434,10 +435,10 @@ class CalibrationSystem():
         """
         elbo_record = []
         it = 0
-        print("Starting Run")
+        if verbose: print("Starting Run")
         try:
             while (its is None) or (it<its):
-                print(".",end="")                
+                if verbose: print(".",end="")                
                 it+=1
                 with tf.GradientTape() as tape:
                     qu = tfd.MultivariateNormalTriL(self.mu[:,0],self.scale)
@@ -462,7 +463,8 @@ class CalibrationSystem():
                     if self.likemodel=='distribution':
                         assert self.mulike is not None
                         elbo_loss -= self.pulike.log_prob(self.mulike[:,0])
-                    if it%20==0: print("%d (ELBO=%0.4f)" % (it, elbo_loss))
+                    if verbose: 
+                        if it%20==0: print("%d (ELBO=%0.4f)" % (it, elbo_loss))
                     
                     if (self.mulike is None) or (it%50<25): #optimise latent fns
                         gradients = tape.gradient(elbo_loss, [self.mu,self.scale])

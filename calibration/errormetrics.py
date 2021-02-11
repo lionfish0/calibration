@@ -2,16 +2,16 @@ import numpy as np
 import tensorflow_probability as tfp
 
 def MAE(x,y):
-    """Mean absolute error"""
+    """Mean absolute error, units U"""
     return np.mean(np.abs(x-y))
 
 def MSE(x,y):
     """
-    Mean Squared Error"""
+    Mean Squared Error, units U^2"""
     return np.mean((x-y)**2)
 
 def NMSE(x,y):
-    """Normalised Mean Squared Error
+    """Normalised Mean Squared Error, units none (U^2/U^2 = none)
     x = correct
     y = estimate
     see https://math.stackexchange.com/questions/488964/the-definition-of-nmse-normalized-mean-square-error
@@ -19,7 +19,7 @@ def NMSE(x,y):
     return MSE(x,y)/MSE(x,0)
 
 def NLPD(x,y,ystd):
-    """(normalised) Negative Log Predictive Density
+    """(normalised) Negative Log Predictive Density, units none
     
     Definition of Negative Log Predictive Density (NLPD):
 

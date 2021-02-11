@@ -6,15 +6,17 @@ def getrealpolution(t,loc):
 def getstaticsensortranform(t,pol,Nrefs,sensor,noisescale):##25
     if sensor<Nrefs: return pol
     #noisescale = 1*(1+np.cos(t*0.002*(1+sensor/3))+np.sin(t*0.001*(1+sensor/10)))
-    v = pol*(1+0.5*np.sin(1+sensor)+0.2*np.cos(1+t*0.003*(1+np.cos(sensor))+sensor)) + np.random.randn()*noisescale
+    #v = pol*(1+0.5*np.sin(1+sensor)+0.2*np.cos(1+t*0.003*(1+np.cos(sensor))+sensor)) + np.random.randn()*noisescale
+    v = pol*(1+0.5*np.sin(1+sensor)+0.2*np.cos(1+t*0.002*(1+0.5*np.cos(sensor))+sensor)) + np.random.randn()*noisescale
     #v[v<1,:]=1
     if v<1:
         v=1
     return v
 
 def getmobilesensortranform(t,pol,sensor,noisescale):##25
-    #noisescale = 1*(1+np.cos(t*0.002*(1+sensor/3))+np.sin(t*0.001*(1+sensor/10)))
-    v = pol*(1.2+0.2*np.sin(4+sensor)+0.4*np.cos(2+t*0.01*(1+0.5*np.cos(4+sensor))+3+sensor)) + np.random.randn()*noisescale
+    #noisescale = 1*(1+np.cos(t*0.002*(1+sensor/3))+np.sin(t*0.001*(1+sensor/10)))    
+    #v = pol*(1.2+0.2*np.sin(4+sensor)+0.4*np.cos(2+t*0.01*(1+0.5*np.cos(4+sensor))+3+sensor)) + np.random.randn()*noisescale
+    v = pol*(1.2+0.2*np.sin(4+sensor)+0.4*np.cos(2+t*0.005*(1+0.5*np.cos(4+sensor))+3+sensor)) + np.random.randn()*noisescale    
     if v<1:
         v=1
     #v[v<1,:]=1

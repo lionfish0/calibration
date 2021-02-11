@@ -9,7 +9,7 @@ def f(x,a,b):
     """
     return x*a+b
     
-def compute_simple_calibration(X,Y,delta,refsensor,mincolocationsinperiod=3):
+def compute_simple_calibration(X,Y,delta,refsensor,mincolocationsinperiod=3,weightovertime=1):
     """
     Computes scalings of each sensor using the network of colocated observations
     to connect reference sensors to other sensors by following a shortest path
@@ -19,6 +19,7 @@ def compute_simple_calibration(X,Y,delta,refsensor,mincolocationsinperiod=3):
     Y = An Nx2 matrix of measured values at sensorA and sensorB.
     delta = how long (in the same units of time as in X[:,0]) are the 'chunks'?
     refsensor = a binary vector of whether a sensor is a reference sensor or not.
+    weightovertime = the weight to assign to edges over time (compared to 1 for between colocations)
     
     Returns a lot of debug content at the moment:
     G - the graph of the 'connections' between sensors [debug]
@@ -43,9 +44,9 @@ def compute_simple_calibration(X,Y,delta,refsensor,mincolocationsinperiod=3):
                 if len(Ykeep[keep,0])>mincolocationsinperiod: #need a few data points for confidence?
                     logratio=np.nanmean(np.log(Ykeep[keep,0]/Ykeep[keep,1]))
                     popt, pcov = curve_fit(f,Ykeep[keep,1],Ykeep[keep,0])
-                    G.add_edge((i,it),(j,it),val=logratio,popt=popt,pcov=pcov,weight=2)
+                    G.add_edge((i,it),(j,it),val=logratio,popt=popt,pcov=pcov,weight=1)
                     popt, pcov = curve_fit(f,Ykeep[keep,0],Ykeep[keep,1])
-                    G.add_edge((j,it),(i,it),val=-logratio,popt=popt,pcov=pcov,weight=2)
+                    G.add_edge((j,it),(i,it),val=-logratio,popt=popt,pcov=pcov,weight=1)
     maxit = it
     for it,starttime in enumerate(np.arange(0,np.max(X[:,0])+delta,delta)):
         if it>0:
@@ -54,15 +55,19 @@ def compute_simple_calibration(X,Y,delta,refsensor,mincolocationsinperiod=3):
                 if np.any([(i,j) in G.nodes for j in range(maxit)]):
                     popt = np.array([0,0])
                     pcov = np.eye(2)
-                    G.add_edge((i,it-1),(i,it),val=0,popt=popt,pcov=pcov,weight=1)
-                    G.add_edge((i,it),(i,it-1),val=0,popt=popt,pcov=pcov,weight=1)
+                    G.add_edge((i,it-1),(i,it),val=0,popt=popt,pcov=pcov,weight=weightovertime)
+                    G.add_edge((i,it),(i,it-1),val=0,popt=popt,pcov=pcov,weight=weightovertime)
                     
     allsp = {}
     for ref in np.where(refsensor)[0]:
         for timeidx in range(maxit+1):
-
             #sp = nx.shortest_paths.single_target_shortest_path(G,(ref,timeidx))
-            sp = nx.shortest_paths.single_source_dijkstra_path(G,(ref,timeidx))
+            try:
+                sp = nx.shortest_paths.single_source_dijkstra_path(G,(ref,timeidx))
+            except nx.NodeNotFound:
+                #print("Not found %s in graph." % str((ref,timeidx)))
+                continue #no paths to the reference sensor in this time period
+            
             for s in sp:
                 if s in allsp:
                     if len(sp[s])<len(allsp[s]):
@@ -117,8 +122,13 @@ def compute_simple_predictions(testX,testY,testtrueY,allcals,delta):
         if np.isnan(true): continue
         #temp.append(sensorid0)
         #print((sensorid0,timeidx))
-        scaling = np.exp(allcals[(sensorid0,timeidx)])
-        preds[i] = scaling*test0
+        try:
+            scaling = np.exp(allcals[(sensorid0,timeidx)])
+            preds[i] = scaling*test0            
+        except KeyError:
+            preds[i] = np.nan
+            continue
+
         #print("\nmeasurement:",test0,"\nsensorid:",sensorid0,"\npath:",allsp[(sensorid0,timeidx)],"\nlist:",allcallists[(sensorid0,timeidx)],"\noverall calibration:",allcals[(sensorid0,timeidx)],"\nscaling:",scaling,"\nprediction:",scaling*test0,"\ntruth:",true)
         res2.append([scaling*test0,true])
         res.append([test0,true])

@@ -39,45 +39,63 @@ def processBAMdata(pathtofolders,channelids):
         allbamdf.append(bamdf)
     return pd.concat(allbamdf)
     
-def loaddata(bigquery_account_json,nextdays=5):
+def loaddata(bigquery_account_json,nextdays=5,since='2000-01-01',refresh=False):
     """
     Load data from main GCP database.
-    Pass it the path to your CGP key.
+    bigquery_account_json : Pass it the path to your CGP key.
+    nextdays : how many days to add from the GCP (default 5!)
+    since : only use data since this date, older data will be removed (string, e.g. '2020-01-30'
+    
+    
     Returns a dataframe of all the sensor data.
     
     Currently this version just downloads the next five days of data from the oldest data in the cache.
     If you want to download more, change 'nextdays' parameter to a larger number. If you set it to, for
     example 30000 it will download all the data.
+    
+    
     """
     client = bigquery.Client.from_service_account_json(bigquery_account_json)
-    try:
-        df = pickle.load(open('alldata.p','rb'))
-        mostrecent = df['created_at'].max()
+
+    if not refresh:
+        try:
+            df = pickle.load(open('alldata_%s.p' % since,'rb'))
+            print("Cache dataframe occupies %0.1f Mb of memory." % (df.memory_usage().sum() / (1024**2)))
+            mostrecent = df['created_at'].max()            
+            print("Found cache file containing data up to %s" % mostrecent.strftime('%Y-%m-%d'))
+        except FileNotFoundError:
+            print("Not found 'since' cache.")
+            refresh = True
+    if refresh:    
+        df = None
+        mostrecent = pd.Timestamp(since)
+
+    while mostrecent<pd.Timestamp('now'):
         nexttimestep = mostrecent + pd.Timedelta(nextdays,'day')
-        mostrecent = mostrecent.strftime('%Y-%m-%d')
-        
-        
-        nexttimestep = nexttimestep.strftime('%Y-%m-%d')
-        print("Found cache file containing data up to %s" % mostrecent)
-        print("Downloading more data to date %s" % nexttimestep)
-        sql = """SELECT * FROM `airqo-250220.thingspeak.clean_feeds_pms` WHERE (created_at >= DATETIME('%s')) AND (created_at < DATETIME('%s'))""" % (mostrecent,nexttimestep)
+        mostrecentstring = mostrecent.strftime('%Y-%m-%d')        
+        nexttimestepstring = nexttimestep.strftime('%Y-%m-%d')
+        print("Downloading data between %s to %s" % (mostrecentstring,nexttimestepstring))
+        sql = """SELECT * FROM `airqo-250220.thingspeak.clean_feeds_pms` WHERE (created_at >= DATETIME('%s')) AND (created_at < DATETIME('%s'))""" % (mostrecentstring,nexttimestepstring)
         print("SQL query:")
         print(sql)
         d = client.query(sql)
         print("Query complete, converting to dataframe...")
         d = d.to_dataframe()     
-        print("done")
-        print(d)
-        print("Concatenating with cached data...")
-        df = pd.concat([df,d]) #ugh, memory issues: https://www.confessionsofadataguy.com/solving-the-memory-hungry-pandas-concat-problem/
+        print("Most recent datapoint downloaded is on %s." % (d['created_at'].max().strftime('%Y-%m-%d')))
+        
+        if df is None:
+            df = d
+        else:
+            print("Concatenating with cached data...")
+            df = pd.concat([df,d]) #ugh, memory issues: https://www.confessionsofadataguy.com/solving-the-memory-hungry-pandas-concat-problem/
         print("Dropping duplicates...")
         df = df.drop_duplicates() #we are likely to have duplicates as the create_at threshold is a bit vague
-    except FileNotFoundError:
-        print("cache file ('alldata.p') not found. Downloading entire dataset, this may take some time.")
-        sql = """SELECT * FROM `airqo-250220.thingspeak.clean_feeds_pms`"""
-        df = client.query(sql).to_dataframe()
+        mostrecent = nexttimestep
     print("Saving new cache")
-    pickle.dump(df,open('alldata.p','wb'))
+    if since is not None:
+        pickle.dump(df,open('alldata_%s.p' % since,'wb'))
+    else:
+        pickle.dump(df,open('alldata.p','wb'))
     return df
 
 def combinedatasets(df,otherdf, distfromboxcentre = 40e3, boxlat=0.313611, boxlong=32.581111):
