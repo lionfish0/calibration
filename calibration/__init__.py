@@ -409,6 +409,7 @@ class CalibrationSystem():
     #    return tfd.Normal(0,self.likelihoodstd).log_prob(scaledA-scaledB)
         
     def likelihoodfn(self,scaledA,scaledB,ref):
+        #assert False, "Not Implemented. Please inherit and implement"
         likelihoodstd = np.sqrt((self.likelihoodstd**2)*np.sum(1-ref,1))
         #likelihoodstd = 1e-4+((1-np.any(ref,1))*(self.likelihoodstd)).astype(np.float32)
         #likelihoodstd = np.sqrt((self.likelihoodstd**2)*np.sum(1-ref,1))

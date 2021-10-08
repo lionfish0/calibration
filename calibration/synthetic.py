@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 def getrealpolution(t,loc):
     return (loc[0]*30+10*np.cos(1+loc[1]*4))*np.sin(t/2.3)+np.cos(1+t/10)*30+loc[0]*5+loc[1]*3+50
@@ -92,3 +93,121 @@ def generate_synthetic_dataset(Nstatic,
     Y[Y<1]=1
     trueY[trueY<1]=1
     return refsensor,X,Y,trueY,statics,mobilecentres
+    
+###Bee example of categorical data###
+
+def genguess(conf_matrix,truebee):
+    return np.random.choice(conf_matrix.shape[0],1,p=conf_matrix[truebee,:])
+    
+def syntheticA():
+    """
+    e.g. call: 
+      priorp,conf_matrices,truebees = syntheticA()    
+    """
+    #priorp = [0.7,0.145,0.145,0.01] # [0.25,0.25,0.25,0.25]
+    priorp = [0.50 , 0.17, 0.15, 0.1, 0.08]
+    #priorp = [0.8, 0.2]
+    priorp = np.array(priorp)/np.sum(priorp)
+    truebees = np.random.choice(len(priorp),1000,p=priorp)
+    #we initially assume that the confusion matrices are stationary.
+    conf_matrices = []
+    #conf_matrices.append(np.array([[1,1,0,0],[1,1,0,0],[0,0,1,1],[0,0,1,1]]))
+    c = np.eye(len(priorp))
+    c[0,:]=1
+    conf_matrices.append(c)
+    conf_matrices.append(np.ones([len(priorp),len(priorp)])+np.eye(len(priorp))) #complete random+a bit of accuracy.
+    conf_matrices.append(np.random.rand(len(priorp),len(priorp))+np.eye(len(priorp))*5)
+    conf_matrices.append(np.random.rand(len(priorp),len(priorp))+np.eye(len(priorp))*0.5)
+    conf_matrices.append(np.eye(len(priorp)))
+    for i in range(len(conf_matrices)): #normalising
+        conf_matrices[i] = (conf_matrices[i].T/np.sum(conf_matrices[i],1)).T
+    return priorp, conf_matrices, truebees
+def syntheticB():
+    """
+    e.g. call: 
+      priorp,conf_matrices,truebees = syntheticB()    
+    """
+    priorp = [0.95,0.05]
+    truebees = np.random.choice(2,1000,p=priorp)
+    conf_matrices = []
+    conf_matrices.append(np.ones([2,2]))
+    conf_matrices.append(np.eye(2))
+    for i in range(len(conf_matrices)): #normalising
+        conf_matrices[i] = (conf_matrices[i].T/np.sum(conf_matrices[i],1)).T
+    return priorp, conf_matrices, truebees
+
+def syntheticC():
+    """
+    e.g. call: 
+      priorp,conf_matrices,truebees = syntheticC()    
+    """
+    priorp = [0.90,0.05,0.05]
+    truebees = np.random.choice(3,1000,p=priorp)
+    conf_matrices = []
+    conf_matrices.append(np.ones([3,3]))
+    conf_matrices.append(np.eye(3))
+    for i in range(len(conf_matrices)): #normalising
+        conf_matrices[i] = (conf_matrices[i].T/np.sum(conf_matrices[i],1)).T
+    return priorp, conf_matrices, truebees
+
+def syntheticD():
+    """
+    e.g. call: 
+      priorp,conf_matrices,truebees = syntheticD()    
+    """
+    priorp = [0.6,0.2,0.2]
+    truebees = np.random.choice(3,1000,p=priorp)
+    conf_matrices = []
+    conf_matrices.append(np.array([[1,1,1],[0,1,0],[0,0,1]]))
+    conf_matrices.append(np.eye(3))
+    for i in range(len(conf_matrices)): #normalising
+        conf_matrices[i] = (conf_matrices[i].T/np.sum(conf_matrices[i],1)).T
+    return priorp, conf_matrices, truebees
+
+def buildXY_from_D(D):
+    X = []
+    Y = []
+    for i,d in enumerate(D):
+            for ci in range(len(d)):
+                for cj in range(ci+1,len(d)):
+                    if (~np.isnan(d[ci])) and (~np.isnan(d[cj])):
+                        X.append([i,ci,cj])
+                        Y.append([d[ci],d[cj]])  
+    X = np.array(X)
+    Y = np.array(Y)                        
+    return X,Y
+    
+def build_D_from_csv(csvfilename,removerare):
+    df = pd.read_csv(csvfilename,index_col=0)
+    df = df.replace(removerare,[np.NaN]*len(removerare))
+    names = np.array(list(set(df.to_numpy().flatten())))
+    names = names[[n!='nan' for n in names]]
+    freqs = np.array([np.sum(df.to_numpy().flatten()==i) for i in names]).astype(float)
+    priorp = freqs/np.sum(freqs)
+    namereplacementvalues = np.arange(len(names))
+    df = df.replace(names,namereplacementvalues)
+    df = df.replace(-1,np.NaN)
+    truebees = df['ground truth'].to_numpy().copy()
+    return df.to_numpy(), priorp, truebees
+    
+def gen_synthetic_observations(priorp,conf_matrices,truebees):
+    X = []
+    Y = []
+    D = np.full([len(truebees),len(conf_matrices)],np.NAN)
+    for i,tb in enumerate(truebees):
+        p = 0.6
+        for j,m in enumerate(conf_matrices):
+            if np.random.rand()<p:
+                D[i,j] = genguess(m,tb)
+                p = 0.5
+                #if j==1: p = 0 #we stop any colocations between #1 and #2[ref]
+            else:
+                p*=2**(1/(len(conf_matrices)-1))
+    X,Y = buildXY_from_D(D)
+   
+    refsensor = np.zeros(len(conf_matrices))
+    refsensor[-1]=1
+    return X,Y,refsensor,D
+
+
+
