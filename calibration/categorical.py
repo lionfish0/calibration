@@ -9,6 +9,11 @@ tfd = tfp.distributions
 class AltCalibrationSystem(CalibrationSystem):
     def __init__(self,X,Y,Z,refsensor,C,gpflowkernels,kernelindices,jitter=1e-6,lr=0.02,minibatchsize=100,sideY=None,priorp=None):
         Y = Y.astype(int)
+        #Legacy support: Previously we assumed the pair of observations happened at the same time
+        #so X only had one time column. This is still allowed, but a 2nd column is added here
+        if X.shape[1]==3:
+            X = np.c_[X[:,0],X[:,0],X[:,1],X[:,2]]
+        
         super().__init__(X,Y,Z,refsensor,C,None,gpflowkernels,kernelindices,likemodel=None,
                          gpflowkernellike=None,likelihoodstd=None,jitter=jitter,lr=lr,likelr=None,
                          minibatchsize=minibatchsize,sideY=sideY)
@@ -26,34 +31,18 @@ class AltCalibrationSystem(CalibrationSystem):
         print("--------------------")
         confsize = np.sqrt(self.C).astype(int)
         exp_samps = tf.reshape(tf.exp(samps),[len(samps),len(Y),confsize,confsize,2])
-        #print("exp_samps",exp_samps[0,0,:,:,0],exp_samps[0,0,:,:,1])
-        #exp_samps = tf.transpose(exp_samps,perm=[0,2,3,1,4])
-        #refcon = tf.eye(confsize)*100 #1->100, 0->0
-        #exp_samps = tf.where(ref==0,exp_samps,tf.tile(refcon[:,:,None,None],[1,1,len(Y),2]))
-        #probs = exp_samps/tf.reduce_sum(exp_samps,2)[:,:,None,:,:]
-        #probs = tf.transpose(probs,perm=[3,1,0,2,4])
-        
-        #probs = exp_samps/tf.reduce_sum(exp_samps,3)[:,:,:,None,:]
         probs = exp_samps/tf.reduce_sum(exp_samps,2)[:,:,None,:,:]
         probs = tf.transpose(probs,perm=[0,2,3,1,4])
-        #print("ref")
-        #print(ref[0,:])
         probs = tf.where(ref==0,probs,tf.tile(tf.eye(confsize)[:,:,None,None],[1,1,len(Y),2]))
         probs = tf.transpose(probs,perm=[3,1,0,2,4])
-        #print("probs",probs[0,:,0,:,0],probs[0,:,0,:,1])
-        
-        
         
         #for each sample & observation pair, probs is two square matrices (for each observer)
         #with p(obs1_species1|true_species_Y)
         #here we multiply them together to give
         #p(obs1_species1,obs2_species2|true_species_Y)
-        #print("Y")
-        #print(Y[0,:])
-        #print("prob gathering...")
-        #print(tf.gather(probs[:,:,:,:,0],Y[:,0],axis=1,batch_dims=1)[0,0,:])
-        #print(tf.gather(probs[:,:,:,:,1],Y[:,1],axis=1,batch_dims=1)[0,0,:])
+        
         probs = tf.gather(probs[:,:,:,:,0],Y[:,0],axis=1,batch_dims=1)*tf.gather(probs[:,:,:,:,1],Y[:,1],axis=1,batch_dims=1)
+        
         #for each sample & observation pair, probs is a vector
         #each element is the probability of the two observations given the true species
         #print("probs_gathered",probs[0,0,:])
@@ -61,11 +50,8 @@ class AltCalibrationSystem(CalibrationSystem):
         #to give p(obs1_species1,obs2_species2,true_species_Y)
         #then sum over the true_species
         #to give p(obs1_species1,obs2_species2)
-        #print("priorp",priorp)
-        probs = tf.reduce_sum(probs*self.priorp,axis=2)
-        #print("probs:",probs[0,0])
-        #probs = tf.reduce_mean(probs,axis=2) #assumes flat prior on all species
         
+        probs = tf.reduce_sum(probs*self.priorp,axis=2)
         
         return tf.math.log(probs) #scaledA-scaledB) #think this is more appropriate for the data
     #@tf.function
@@ -95,25 +81,28 @@ class AltCalibrationSystem(CalibrationSystem):
         
 #helper fns that probably should be in the class
 
-def compute_posterior_probs(cs):
+def compute_posterior_probs(cs,sensors=None,t=0,num_samps=100):
     """
     For the optimised calibration system, cs, compute the mean probabilities
     returning the confusion matrices...
     """
+    if sensors is None:
+        sensors = np.arange(len(cs.refsensor)) #all of them.
     C = cs.C
     allprobs = []
-    for si,refs in enumerate(cs.refsensor):
-        if refs: continue
-        x = np.array([[0]])
+    #for si,refs in enumerate(cs.refsensor):
+    #    if refs: continue
+    for si in sensors:
+        x = np.array([[t]])
         testX = np.zeros([0,3])
         for ci in range(C):
             tempX = np.c_[x,np.ones_like(x)*si,np.full_like(x,ci)]
             testX = np.r_[testX,tempX]#.astype(int)
         testsm = SparseModel(testX,cs.Z,C,cs.k)
         qf_mu,qf_cov = testsm.get_qf(cs.mu,cs.scale)
-        samps = testsm.get_samples_one_sensor(cs.mu,cs.scale)
+        samps = testsm.get_samples_one_sensor(cs.mu,cs.scale,num_samps)
 
-        exp_samps = tf.reshape(tf.exp(samps),[100,len(cs.priorp),len(cs.priorp)])
+        exp_samps = tf.reshape(tf.exp(samps),[num_samps,len(cs.priorp),len(cs.priorp)])
         #probs = exp_samps/tf.reduce_sum(exp_samps,2)[:,:,None]
         probs = exp_samps/tf.reduce_sum(exp_samps,1)[:,None,:]
         allprobs.append(probs)

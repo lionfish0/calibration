@@ -122,6 +122,33 @@ def syntheticA():
     for i in range(len(conf_matrices)): #normalising
         conf_matrices[i] = (conf_matrices[i].T/np.sum(conf_matrices[i],1)).T
     return priorp, conf_matrices, truebees
+    
+    
+def syntheticA2():
+    """
+    e.g. call: 
+      priorp,conf_matrices,truebees = syntheticA()    
+    """
+    #priorp = [0.7,0.145,0.145,0.01] # [0.25,0.25,0.25,0.25]
+    priorp = [0.50 , 0.17, 0.15, 0.1, 0.08]
+    #priorp = [0.8, 0.2]
+    priorp = np.array(priorp)/np.sum(priorp)
+    truebees = np.random.choice(len(priorp),1000,p=priorp)
+    #we initially assume that the confusion matrices are stationary.
+    conf_matrices = []
+    #conf_matrices.append(np.array([[1,1,0,0],[1,1,0,0],[0,0,1,1],[0,0,1,1]]))
+    c = np.eye(len(priorp))
+    c[0,1:]=0.5
+    conf_matrices.append(c)
+    conf_matrices.append(np.ones([len(priorp),len(priorp)])+np.eye(len(priorp))) #complete random+a bit of accuracy.
+    conf_matrices.append(np.random.rand(len(priorp),len(priorp))+np.eye(len(priorp))*5)
+    conf_matrices.append(np.random.rand(len(priorp),len(priorp))+np.eye(len(priorp))*0.5)
+    conf_matrices.append(np.eye(len(priorp)))
+    for i in range(len(conf_matrices)): #normalising
+        conf_matrices[i] = (conf_matrices[i].T/np.sum(conf_matrices[i],1)).T
+    return priorp, conf_matrices, truebees
+    
+    
 def syntheticB():
     """
     e.g. call: 
@@ -177,6 +204,7 @@ def buildXY_from_D(D):
     Y = np.array(Y)                        
     return X,Y
     
+    
 def build_D_from_csv(csvfilename,removerare):
     df = pd.read_csv(csvfilename,index_col=0)
     df = df.replace(removerare,[np.NaN]*len(removerare))
@@ -208,6 +236,5 @@ def gen_synthetic_observations(priorp,conf_matrices,truebees):
     refsensor = np.zeros(len(conf_matrices))
     refsensor[-1]=1
     return X,Y,refsensor,D
-
-
+    
 

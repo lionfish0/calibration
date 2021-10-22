@@ -72,6 +72,8 @@ def printresults(results):
     print("Baseline (\", trust weighted)  %0.1f%% correct" % (100*np.mean(results['trust_guess'])))
     print("Baseline (\", prior weighted)  %0.1f%% correct" % (100*np.mean(results['baseline_mostguessedtimespriorp'])))
     print("Baseline (most common)        %0.1f%% correct" % (100*np.mean(results['baseline_mostcommon'])))
+    print("Baseline (most common B)      %0.1f%% correct" % (100*np.max([np.mean(blmc) for i,blmc in results['baseline_mostcommon_debug'].items()])))
+
     print("======NLPD======")
     print("Calibration Method            %0.2f" % -np.sum(np.log(results['correctprob'])))
     print("Collaborative Filtering       %0.2f" % -np.sum(np.log(results['colfilprob_guess'])))
@@ -96,18 +98,19 @@ def evaluate(D,truevals,priorp,allprobs,colfil_results,refsensor,trust):
     results['baselineprob_mostguessed'] = []
     results['colfilprob_guess'] = []
     results['trustprob_guess'] = []
+    results['baseline_mostcommon_debug'] = {}
 
     for vali,(ds,t) in enumerate(zip(D,truevals)):
         if np.isnan(t):
             continue #if we don't even know the true value of a row, just skip.
-        pOs = np.ones([allprobs[0].shape[0],len(priorp)])
+        pOs = np.ones([allprobs[0].shape[1],len(priorp)])
         if ~np.isnan(ds[refsensor==1][0]): 
             continue
 
         t = t.astype(int)
         for i,d in enumerate(ds):
             if np.isnan(d): continue
-            pOs*=allprobs[i][:,int(d),:] #p(observation=value|species) - not a distribution!
+            pOs*=allprobs[i][vali,:,int(d),:] #p(observation=value|species) - not a distribution!
 
         #pOs = p(observation_1=value|species) * p(observation_2=value|species) ...
         #    = p(obs1=v,obs2=v|species)
@@ -131,6 +134,9 @@ def evaluate(D,truevals,priorp,allprobs,colfil_results,refsensor,trust):
         results['baseline_mostguessed'].append(t==np.argmax(tempB))
         results['baselineprob_mostguessed'].append(tempB[t])
 
+        for i in range(len(priorp)):
+            if i not in results['baseline_mostcommon_debug']: results['baseline_mostcommon_debug'][i] = []
+            results['baseline_mostcommon_debug'][i].append(t==i)
         results['baseline_mostcommon'].append(t==np.argmax(priorp))
         results['baselineprob_mostcommon'].append(priorp[t])
 
