@@ -213,7 +213,7 @@ def getcov(scale):
 
 class CalibrationSystem():
 
-    def __init__(self,X,Y,Z,refsensor,C,transform_fn,gpflowkernels,kernelindices,likemodel='fixed',gpflowkernellike=None,likelihoodstd=1.0,jitter=1e-4,lr=0.02,likelr=None,minibatchsize=100,sideY=None):
+    def __init__(self,X,Y,Z,refsensor,C,transform_fn,transform_fn_loggrad,gpflowkernels,kernelindices,likemodel='fixed',gpflowkernellike=None,likelihoodstd=1.0,jitter=1e-4,lr=0.02,likelr=None,minibatchsize=100,sideY=None):
         """
         A tool for running the calibration algorithm on a dataset, produces
         estimates of the calibration parameters over time for each sensor.
@@ -245,6 +245,12 @@ class CalibrationSystem():
                                      x number of observations (N) 
                                      x (number of components) (C)].
                  Y's shape is [number of observations (N) x 1].
+        transform_fn_loggrad : A function of the form: def transform_fn_loggrad(samps,Y),
+           where samps's shape is: [batch (number of samples) 
+                                     x number of observations (N) 
+                                     x (number of components) (C)].
+                 Y's shape is [number of observations (N) x 1].
+                 (returns the log of the gradient of transform_fn wrt y)
         gpflowkernels = a list of GPflow kernels.
           E.g. gpflowkernels = [gpflow.kernels.RBF(1.0,200),gpflow.kernels.Bias(1.0)]
         kernelindices = a list (length C) of lists (number of sensors), 
@@ -327,6 +333,7 @@ class CalibrationSystem():
         self.refsensor = refsensor.astype(np.float32)
         self.jitter = jitter
         self.transform_fn = transform_fn  
+        self.transform_fn_loggrad = transform_fn_loggrad
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=lr,amsgrad=False)    
         self.precompute()
         
@@ -379,23 +386,23 @@ class CalibrationSystem():
         else:
             self.sideY = None
         
-    def likelihoodfn_nonstationary(self,scaledA,scaledB,varparamA,varparamB):
+    def likelihoodfn_nonstationary(self,scaledA,scaledB,scaledAloggrad,scaledBloggrad,varparamA,varparamB):
+        assert False, "Need to implement new correction with log gradients"
         return tfd.Normal(0,0.00001+tf.sqrt(tf.exp(varparamA)+tf.exp(varparamB))).log_prob(scaledA-scaledB)    
     
     #def likelihoodfn(self,scaledA,scaledB):
     #    return tfd.Normal(0,self.likelihoodstd).log_prob(scaledA-scaledB)
         
-    def likelihoodfn(self,scaledA,scaledB,ref):
-        #assert False, "Not Implemented. Please inherit and implement"
-        likelihoodstd = np.sqrt((self.likelihoodstd**2)*np.sum(1-ref,1))
-        #likelihoodstd = 1e-4+((1-np.any(ref,1))*(self.likelihoodstd)).astype(np.float32)
+    def likelihoodfn(self,scaledA,scaledB,scaledAloggrad,scaledBloggrad,ref):
         #likelihoodstd = np.sqrt((self.likelihoodstd**2)*np.sum(1-ref,1))
-        #likelihoodstd = self.likelihoodstd/100+self.likelihoodstd*np.min(1-ref,1)
-        #return tfd.Normal(0,0.001+likelihoodstd).log_prob((scaledA-scaledB)/(scaledA+scaledB))
-        #return tfd.Normal(0,self.likelihoodstd).log_prob((scaledA-scaledB)/(scaledA+scaledB#))
-        #return tfd.Normal(0,self.likelihoodstd).log_prob(scaledA-scaledB)
-        #return tfd.Normal(0,likelihoodstd).log_prob(scaledA-scaledB)
-        return tfd.Normal(0,likelihoodstd).log_prob((scaledA-scaledB)/(0.5*(scaledA+scaledB)))
+        ##return tfd.Normal(0,likelihoodstd).log_prob(scaledA-scaledB)
+        #return tfd.Normal(0,likelihoodstd).log_prob((scaledA-scaledB)/(0.5*(scaledA+scaledB)))
+        
+        mu = np.array([0.,0.]).astype(np.float32)
+        cov = np.array([[ 1,  0.99],
+               [ 0.99,  1]]).astype(np.float32)*100
+        mvn = tfd.MultivariateNormalTriL(loc=mu, scale_tril=tf.linalg.cholesky(cov))
+        return mvn.log_prob(tf.stack([scaledA,scaledB],axis=2)) + scaledAloggrad + scaledBloggrad
         
 
     #@tf.function
@@ -426,13 +433,16 @@ class CalibrationSystem():
                     self.sm = SparseModel(self.X,self.Z,self.C,self.k)
                     samps = self.sm.get_samples(self.mu,self.scale,samples)
                     scaled = tf.concat([self.transform_fn(samps[:,:,::2],self.Y[:,0:1],self.sideY),self.transform_fn(samps[:,:,1::2],self.Y[:,1:2],self.sideY)],2)
+                    scaledloggrad = tf.concat([self.transform_fn_loggrad(samps[:,:,::2],self.Y[:,0:1],self.sideY),self.transform_fn_loggrad(samps[:,:,1::2],self.Y[:,1:2],self.sideY)],2)
                     scaled = (scaled * (1-self.ref)) + (self.Y * self.ref)
+                    #the log-gradient is either the computed log-gradient or just 0, if the sensor is a reference instrument
+                    scaledloggrad = (scaledloggrad * (1-self.ref)) + (tf.zeros_like(self.Y,dtype=tf.float32) * self.ref)
                     if self.mulike is not None: #if we have non-stationary likelihood variance...
                         qulike = tfd.MultivariateNormalTriL(self.mulike[:,0],self.scalelike)              
                         like = self.smlike.get_samples(self.mulike,self.scalelike,samples)
-                        ell = tf.reduce_mean(tf.reduce_sum(self.likelihoodfn_nonstationary(scaled[:,:,0],scaled[:,:,1],like[:,:,0]*(1-self.ref[:,0])-1000*self.ref[:,0],like[:,:,1]*(1-self.ref[:,1])-1000*self.ref[:,1]),1))
+                        ell = tf.reduce_mean(tf.reduce_sum(self.likelihoodfn_nonstationary(scaled[:,:,0],scaled[:,:,1],scaledloggrad[:,:,0],scaledloggrad[:,:,1],like[:,:,0]*(1-self.ref[:,0])-1000*self.ref[:,0],like[:,:,1]*(1-self.ref[:,1])-1000*self.ref[:,1]),1))
                     else: #stationary likelihood variance
-                        ell = tfp.stats.percentile(tf.reduce_sum(self.likelihoodfn(scaled[:,:,0],scaled[:,:,1],self.ref),1), 50.0, interpolation='midpoint')
+                        ell = tfp.stats.percentile(tf.reduce_sum(self.likelihoodfn(scaled[:,:,0],scaled[:,:,1],scaledloggrad[:,:,0],scaledloggrad[:,:,1],self.ref),1), 50.0, interpolation='midpoint')
                     elbo_loss = -((len(self.fullX)*2)/len(self.X) * ell)+tfd.kl_divergence(qu,self.pu)
                     if self.likemodel=='process':
                         assert self.mulike is not None
