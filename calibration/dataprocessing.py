@@ -91,11 +91,11 @@ def loaddata(bigquery_account_json,nextdays=5,since='2000-01-01',refresh=False):
         print("Dropping duplicates...")
         df = df.drop_duplicates() #we are likely to have duplicates as the create_at threshold is a bit vague
         mostrecent = nexttimestep
-    print("Saving new cache")
-    if since is not None:
-        pickle.dump(df,open('alldata_%s.p' % since,'wb'))
-    else:
-        pickle.dump(df,open('alldata.p','wb'))
+        print("Saving new cache")
+        if since is not None:
+            pickle.dump(df,open('alldata_%s.p' % since,'wb'))
+        else:
+            pickle.dump(df,open('alldata.p','wb'))
     return df
 
 def combinedatasets(df,otherdf, distfromboxcentre = 40e3, boxlat=0.313611, boxlong=32.581111):

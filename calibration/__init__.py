@@ -213,7 +213,7 @@ def getcov(scale):
 
 class CalibrationSystem():
 
-    def __init__(self,X,Y,Z,refsensor,C,transform_fn,transform_fn_loggrad,gpflowkernels,kernelindices,likemodel='fixed',gpflowkernellike=None,likelihoodstd=1.0,jitter=1e-4,lr=0.02,likelr=None,minibatchsize=100,sideY=None):
+    def __init__(self,X,Y,Z,refsensor,C,transform_fn,transform_fn_loggrad,gpflowkernels,kernelindices,likemodel='fixed',gpflowkernellike=None,likelihoodstd=1.0,hstd=1.0,jitter=1e-4,lr=0.02,likelr=None,minibatchsize=100,sideY=None):
         """
         A tool for running the calibration algorithm on a dataset, produces
         estimates of the calibration parameters over time for each sensor.
@@ -268,6 +268,7 @@ class CalibrationSystem():
                 which by default computes the difference between observation
                 pairs (default=1.0). The self.likelihoodfn could be set to
                 a different likelihood.
+        hstd : The standard deviation in the prior normal on h, e.g. 100.
         jitter : Jitter added to ensure stability (default=1e-4).
         lr, likelr : learning rates.
         sideY : side information (humidity, temperature, etc. These are provided
@@ -310,6 +311,8 @@ class CalibrationSystem():
 
         
         self.likelihoodstd = likelihoodstd
+        self.likelihoodvar = likelihoodstd**2
+        self.hvar = hstd**2
         self.minibatchsize = minibatchsize
         self.N = len(X)
         if (self.N<self.minibatchsize): self.minibatchsize=self.N        
@@ -399,8 +402,10 @@ class CalibrationSystem():
         #return tfd.Normal(0,likelihoodstd).log_prob((scaledA-scaledB)/(0.5*(scaledA+scaledB)))
         
         mu = np.array([0.,0.]).astype(np.float32)
-        cov = np.array([[ 1,  0.99],
-               [ 0.99,  1]]).astype(np.float32)*100
+        #cov = np.array([[ 1,  0.99],
+        #       [ 0.99,  1]]).astype(np.float32)*100
+        cov = np.array([[ self.likelihoodvar + self.hvar,  self.hvar],
+               [ self.hvar,  self.likelihoodvar + self.hvar]]).astype(np.float32)*100
         mvn = tfd.MultivariateNormalTriL(loc=mu, scale_tril=tf.linalg.cholesky(cov))
         return mvn.log_prob(tf.stack([scaledA,scaledB],axis=2)) + scaledAloggrad + scaledBloggrad
         
@@ -423,7 +428,7 @@ class CalibrationSystem():
         if verbose: print("Starting Run")
         try:
             while (its is None) or (it<its):
-                if verbose: print(".",end="")                
+                if verbose: print(".",end="",flush=True)                
                 it+=1
                 with tf.GradientTape() as tape:
                     qu = tfd.MultivariateNormalTriL(self.mu[:,0],self.scale)
