@@ -1,0 +1,104 @@
+video,person 1,person 2,person 3,person 4,person 5,CNN,ground truth
+VID_20200517_122441097.mp4,Apis mellifera,Apis mellifera,,,Apis mellifera,Bombus hortorum,Apis mellifera
+VID_20200517_124732941.mp4,Bombus bohemicus,Bombus pratorum,,,Bombus lapidarius,whitebuff,Bombus pratorum
+VID_20200517_124834228.mp4,Bombus bohemicus,Bombus pratorum,,,,whitebuff,Bombus pratorum
+VID_20200517_125948874.mp4,whitebuff,whitebuff,,,whitebuff,whitebuff,whitebuff
+VID_20200517_131508862.mp4,Bombus hypnorum,Bombus hypnorum,,,,Bombus hypnorum,Bombus hypnorum
+VID_20200624_104616059.mp4,whitebuff,whitebuff,,,,whitebuff,whitebuff
+VID_20200624_110029214.mp4,Bombus hortorum,whitebuff,,,,Bombus hortorum,Bombus hortorum
+VID_20200624_111151071.mp4,,,,,,whitebuff,Bombus hortorum
+VID_20200625_181034596.mp4,,,,,,Bombus jonellus,whitebuff
+VID_20200625_181521371.mp4,,Bombus pascuorum,Bombus pascuorum,,,Bombus pascuorum,Bombus pascuorum
+VID_20200625_181635410.mp4,,Bombus lapidarius,Bombus lapidarius,,,Bombus monticola,Bombus lapidarius
+VID_20200625_181717786.mp4,,whitebuff,whitebuff,,,Bombus hypnorum,whitebuff
+VID_20200625_182730825.mp4,,whitebuff,whitebuff,,,whitebuff,whitebuff
+VID_20200627_171307310.mp4,,,whitebuff,,,Bombus hypnorum,whitebuff
+VID_20200627_171406633.mp4,,whitebuff,whitebuff,,,whitebuff,whitebuff
+VID_20200627_171620799.mp4,,whitebuff,whitebuff,whitebuff,,Bombus hypnorum,whitebuff
+VID_20200627_171728841.mp4,,,,,Bombus hortorum,Bombus hortorum,Bombus hortorum
+VID_20200627_173304811.mp4,Bombus lapidarius,Bombus lapidarius,,,,Bombus lapidarius,Bombus lapidarius
+VID_20200627_173331494.mp4,,whitebuff,,,,whitebuff,whitebuff
+VID_20200627_173402684.mp4,,Bombus lapidarius,,Bombus lapidarius,,Bombus lapidarius,Bombus lapidarius
+VID_20200627_175838910.mp4,,Bombus pascuorum,,,Bombus pascuorum,Bombus pratorum,Bombus pascuorum
+VID_20200629_151718073.mp4,,,,,Bombus pascuorum,Bombus muscorum,Bombus pascuorum
+VID_20200629_162743348.mp4,,,,whitebuff,,whitebuff,Bombus hortorum
+VID_20200630_115152219.mp4,,,,,Apis mellifera,whitebuff,Apis mellifera
+VID_20200630_115203278.mp4,,,,,Apis mellifera,whitebuff,Apis mellifera
+VID_20200630_115227723.mp4,,,,,Apis mellifera,Bombus pascuorum,Apis mellifera
+VID_20200630_154055117.mp4,,,,,,Bombus hypnorum,Bombus hortorum
+VID_20200701_171721971.mp4,,,,,whitebuff,whitebuff,Bombus pratorum
+VID_20200701_173841529.mp4,,whitebuff,,Bombus hortorum,,Bombus sylvestris,Bombus hortorum
+VID_20200701_175128455.mp4,,whitebuff,,,,whitebuff,whitebuff
+VID_20200701_175508017.mp4,,Bombus lapidarius,,,Bombus lapidarius,Bombus hypnorum,Bombus lapidarius
+VID_20200701_181624874.mp4,,,,whitebuff,,whitebuff,whitebuff
+VID_20200702_101753121.mp4,,whitebuff,,,whitebuff,whitebuff,whitebuff
+VID_20200708_102101781.mp4,,,,,whitebuff,Bombus hypnorum,whitebuff
+VID_20200710_110746694.mp4,,whitebuff,,,,whitebuff,whitebuff
+VID_20200710_110923766.mp4,,Bombus pascuorum,,Bombus pascuorum,,Bombus pascuorum,Bombus pascuorum
+VID_20200710_111000466.mp4,,whitebuff,,,whitebuff,whitebuff,whitebuff
+VID_20200710_114439578.mp4,,,,,,whitebuff,whitebuff
+VID_20200710_114455598.mp4,,,,Bombus lapidarius,,Bombus bohemicus,Bombus lapidarius
+VID_20200710_114511607.mp4,,,,,Bombus lapidarius,Bombus lapidarius,Bombus lapidarius
+VID_20200710_114550446.mp4,,,,,whitebuff,Bombus hypnorum,whitebuff
+VID_20200710_115453014.mp4,,,,,,whitebuff,whitebuff
+VID_20200710_115522484.mp4,,whitebuff,,whitebuff,,whitebuff,whitebuff
+VID_20200710_115556963.mp4,,whitebuff,,,,whitebuff,whitebuff
+VID_20200710_115641923.mp4,,,,,,whitebuff,whitebuff
+VID_20200710_115700876.mp4,,whitebuff,,whitebuff,,Bombus hypnorum,whitebuff
+VID_20200710_115724661.mp4,,,,,,Bombus pascuorum,Apis mellifera
+VID_20200710_115801745.mp4,,,,,,whitebuff,whitebuff
+VID_20200710_115912823.mp4,,whitebuff,,,,Bombus hortorum,Bombus hortorum
+VID_20200710_115950717.mp4,,Bombus pascuorum,,Bombus pascuorum,,Bombus pascuorum,Bombus pascuorum
+VID_20200710_120323262.mp4,,Bombus pascuorum,,,,Bombus pascuorum,Bombus pascuorum
+VID_20200710_120455459.mp4,,whitebuff,,,,whitebuff,whitebuff
+VID_20200710_120511132.mp4,,whitebuff,,whitebuff,,whitebuff,whitebuff
+VID_20200710_120529555.mp4,,whitebuff,,,,whitebuff,whitebuff
+VID_20200710_120554423.mp4,,,,,,whitebuff,Apis mellifera
+VID_20200711_150244447.mp4,,whitebuff,,whitebuff,,Bombus hypnorum,whitebuff
+VID_20200711_164402511.mp4,,Bombus lapidarius,,,,Bombus lapidarius,Bombus lapidarius
+VID_20200711_164432748.mp4,,Bombus lapidarius,,,,Bombus lapidarius,Bombus lapidarius
+VID_20200711_172130831.mp4,,Bombus lapidarius,,Bombus lapidarius,,Bombus lapidarius,Bombus lapidarius
+VID_20200711_173619098.mp4,,Bombus pascuorum,,,,Bombus pascuorum,Bombus pascuorum
+VID_20200711_173644316.mp4,,,,,,Bombus hypnorum,Bombus pascuorum
+VID_20200711_182826632.mp4,,Bombus lapidarius,,,,Bombus hypnorum,Bombus lapidarius
+VID_20200711_182916047.mp4,,Bombus lapidarius,,,,Bombus lapidarius,Bombus lapidarius
+VID_20200711_183249682.mp4,,Bombus lapidarius,,Bombus lapidarius,,Bombus lapidarius,Bombus lapidarius
+VID_20200713_095249796.mp4,,Bombus bohemicus,,,whitebuff,whitebuff,whitebuff
+VID_20200713_122338407.mp4,,whitebuff,,,,whitebuff,whitebuff
+VID_20200717_131034063.mp4,,,,Bombus hortorum,,whitebuff,Bombus hortorum
+VID_20200717_131114617.mp4,,,,,Bombus pascuorum,Bombus hypnorum,Bombus campestris
+VID_20200717_140020397.mp4,,,,,whitebuff,whitebuff,Bombus hortorum
+VID_20200717_173531059.mp4,,whitebuff,,,,Bombus hortorum,Bombus hortorum
+VID_20200717_173642149.mp4,,,,Bombus hortorum,,whitebuff,Bombus hortorum
+VID_20200717_185050531.mp4,,whitebuff,,,whitebuff,whitebuff,whitebuff
+VID_20200718_112741620.mp4,,whitebuff,,,,whitebuff,whitebuff
+VID_20200718_112841194.mp4,,Bombus lapidarius,,,,Bombus lapidarius,Bombus lapidarius
+VID_20200718_170331805.mp4,,whitebuff,,whitebuff,,whitebuff,whitebuff
+VID_20200718_203329071.mp4,,,,,Bombus pascuorum,Bombus lapidarius,Bombus pascuorum
+VID_20200719_090926168.mp4,,,,,whitebuff,whitebuff,whitebuff
+VID_20200719_090943637.mp4,,,,whitebuff,,whitebuff,whitebuff
+VID_20200719_091232304.mp4,,Bombus lapidarius,,,Bombus lapidarius,Bombus lapidarius,Bombus lapidarius
+VID_20200719_132246357.mp4,,,,,whitebuff,whitebuff,Bombus hortorum
+VID_20200719_132312137.mp4,,,,,,Bombus jonellus,Bombus hortorum
+VID_20200719_140126358.mp4,,,,whitebuff,,whitebuff,Bombus hortorum
+VID_20200719_143028309.mp4,,,,,whitebuff,Bombus pratorum,whitebuff
+VID_20200720_102311320.mp4,,whitebuff,,,,whitebuff,whitebuff
+VID_20200720_102417042.mp4,,,,Bombus pascuorum,,Bombus pascuorum,Apis mellifera
+VID_20200726_104423194.mp4,,,,,,Bombus lapidarius,Bombus lapidarius
+VID_20200726_123600384.mp4,,Bombus lapidarius,,,,Bombus lapidarius,Bombus lapidarius
+VID_20200726_124006409.mp4,,,,Bombus lapidarius,,Bombus lapidarius,whitebuff
+VID_20200728_153326197.mp4,,whitebuff,,,,whitebuff,whitebuff
+VID_20200728_153356111.mp4,,whitebuff,,,,whitebuff,whitebuff
+VID_20200728_153420416.mp4,,,,Bombus hortorum,,whitebuff,whitebuff
+VID_20200728_153441400.mp4,,whitebuff,,,,whitebuff,whitebuff
+VID_20200728_153505490.mp4,,whitebuff,,,,whitebuff,whitebuff
+VID_20200728_153514247.mp4,,whitebuff,,whitebuff,,whitebuff,whitebuff
+VID_20200728_153533396.mp4,,whitebuff,,,,whitebuff,whitebuff
+VID_20200808_191445019.mp4,,Bombus hypnorum,,,,Bombus hypnorum,Bombus hypnorum
+VID_20200813_155709420.mp4,,whitebuff,,whitebuff,,Bombus hypnorum,whitebuff
+VID_20200814_125801413.mp4,,whitebuff,,,,Bombus pratorum,whitebuff
+VID_20200814_130011099.mp4,,,whitebuff,,,whitebuff,whitebuff
+VID_20200814_130304927.mp4,,,whitebuff,whitebuff,,whitebuff,whitebuff
+VID_20200814_131421456.mp4,,,whitebuff,,,whitebuff,whitebuff
+VID_20200814_131440061.mp4,,whitebuff,whitebuff,,,whitebuff,whitebuff
+VID_20200814_131523953.mp4,,whitebuff,whitebuff,whitebuff,,whitebuff,whitebuff
