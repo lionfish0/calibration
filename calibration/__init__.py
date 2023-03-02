@@ -434,8 +434,8 @@ class CalibrationSystem():
                     qu = tfd.MultivariateNormalTriL(self.mu[:,0],self.scale)
                     self.computeforminibatch(False) #it<its*0.25) #for first 25% just use reference sensors - this doesn't seem to help anything
                     if self.likemodel=='distribution' or self.likemodel=='process':
-                        self.smlike = SparseModel(self.Xlike,self.Zlike,1,self.k)
-                    self.sm = SparseModel(self.X,self.Z,self.C,self.k)
+                        self.smlike = SparseModel(self.Xlike,self.Zlike,1,self.k,jitter=self.jitter)
+                    self.sm = SparseModel(self.X,self.Z,self.C,self.k,jitter=self.jitter)
                     samps = self.sm.get_samples(self.mu,self.scale,samples)
                     scaled = tf.concat([self.transform_fn(samps[:,:,::2],self.Y[:,0:1],self.sideY),self.transform_fn(samps[:,:,1::2],self.Y[:,1:2],self.sideY)],2)
                     scaledloggrad = tf.concat([self.transform_fn_loggrad(samps[:,:,::2],self.Y[:,0:1],self.sideY),self.transform_fn_loggrad(samps[:,:,1::2],self.Y[:,1:2],self.sideY)],2)

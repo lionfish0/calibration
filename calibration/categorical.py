@@ -14,8 +14,8 @@ class AltCalibrationSystem(CalibrationSystem):
         if X.shape[1]==3:
             X = np.c_[X[:,0],X[:,0],X[:,1],X[:,2]]
         
-        super().__init__(X,Y,Z,refsensor,C,None,gpflowkernels,kernelindices,likemodel=None,
-                         gpflowkernellike=None,likelihoodstd=None,jitter=jitter,lr=lr,likelr=None,
+        super().__init__(X,Y,Z,refsensor,C,None,None,gpflowkernels,kernelindices,likemodel='fixed',
+                         gpflowkernellike=None,jitter=jitter,lr=lr,likelr=None,
                          minibatchsize=minibatchsize,sideY=sideY)
         confsize = np.sqrt(C).astype(int)
         if priorp is None:
